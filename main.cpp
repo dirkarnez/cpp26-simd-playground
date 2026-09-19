@@ -1,45 +1,44 @@
+#include <experimental/simd>
 #include <iostream>
-#include <simd>
 #include <string_view>
-
-namespace simd = std::simd;
+namespace stdx = std::experimental;
 
 void println(std::string_view name, auto const& a)
 {
     std::cout << name << ": ";
-    for (std::size_t i{}; i != a.size(); ++i)
+    for (std::size_t i{}; i != std::size(a); ++i)
         std::cout << a[i] << ' ';
     std::cout << '\n';
 }
 
 template<class A>
-constexpr simd::basic_vec<int, A> my_abs(simd::basic_vec<int, A> x)
+stdx::simd<int, A> my_abs(stdx::simd<int, A> x)
 {
-    return simd::select(x < 0, -x, x);
+    where(x < 0, x) = -x;
+    return x;
 }
 
 int main()
 {
-    constexpr simd::vec<int> a = 1;
+    const stdx::native_simd<int> a = 1;
     println("a", a);
 
-    constexpr simd::vec<int> b([](int i) { return i - 2; });
+    const stdx::native_simd<int> b([](int i) { return i - 2; });
     println("b", b);
 
-    constexpr auto c = a + b;
+    const auto c = a + b;
     println("c", c);
 
-    constexpr auto d = my_abs(c);
+    const auto d = my_abs(c);
     println("d", d);
 
-    constexpr auto e = d * d;
+    const auto e = d * d;
     println("e", e);
 
-    constexpr auto inner_product = simd::reduce(e);
+    const auto inner_product = stdx::reduce(e);
     std::cout << "inner product: " << inner_product << '\n';
 
-    constexpr simd::vec<double, 16> x([](int i) { return i; });
+    const stdx::fixed_size_simd<long double, 16> x([](int i) { return i; });
     println("x", x);
-    // overloaded math functions are defined in <simd>
-    println("cos²(x) + sin²(x)", std::pow(std::cos(x), 2) + std::pow(std::sin(x), 2));
+    println("cos²(x) + sin²(x)", stdx::pow(stdx::cos(x), 2) + stdx::pow(stdx::sin(x), 2));
 }
